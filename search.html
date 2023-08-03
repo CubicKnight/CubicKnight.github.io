@@ -15,11 +15,8 @@
             margin: 0;
         }
 
-        .search-bar {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
+        .search-form {
+            text-align: center;
         }
 
         .search-input {
@@ -28,6 +25,7 @@
             border: none;
             font-size: 16px;
             width: 300px;
+            margin-bottom: 10px;
             background-color: #202020;
             color: #ffffff;
             outline: none;
@@ -47,23 +45,13 @@
             background-color: #3f3f3f;
         }
 
-        .content-container {
-            display: flex;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .suggestions-container {
-            width: 300px;
-            padding-right: 20px;
-        }
-
         .results-container {
-            flex-grow: 1;
+            width: 100%;
+            max-width: 800px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            align-content: flex-start;
+            margin-top: 20px;
         }
 
         .video-card {
@@ -81,7 +69,6 @@
             max-width: 100%;
             height: auto;
             margin-bottom: 10px;
-            cursor: pointer;
         }
 
         .title {
@@ -99,32 +86,17 @@
             border-top: 1px solid #808080;
             padding-top: 5px;
         }
-
-        .video-player {
-            width: 640px;
-            height: 360px;
-            background-color: #202020;
-            border-radius: 5px;
-            margin-left: 20px;
-        }
     </style>
 </head>
 <body>
-    <div class="search-bar">
-        <form onsubmit="event.preventDefault(); searchYouTube();">
-            <input class="search-input" type="text" id="search-input" placeholder="Enter your search query" required>
-            <button class="search-button" type="submit">Search</button>
-        </form>
-    </div>
+    <form class="search-form" onsubmit="event.preventDefault(); searchYouTube();">
+        <input class="search-input" type="text" id="search-input" placeholder="Enter your search query" required>
+        <br>
+        <button class="search-button" type="submit">Search</button>
+    </form>
 
-    <div class="content-container">
-        <div class="suggestions-container" id="suggestions-container">
-            <!-- Search suggestions will be displayed here -->
-        </div>
-
-        <div class="results-container" id="results-container">
-            <!-- Search results or playlist videos will be displayed here -->
-        </div>
+    <div class="results-container" id="results-container">
+        <!-- Search results will be displayed here -->
     </div>
 
     <script>
@@ -154,54 +126,39 @@
         }
 
         function displayResults(items) {
-            var suggestionsContainer = document.getElementById('suggestions-container');
-            suggestionsContainer.innerHTML = '';
-
-            var resultsContainer = document.getElementById('results-container');
-            resultsContainer.innerHTML = '';
-
-            var videosCount = 0;
-            var playlistsCount = 0;
+            var container = document.getElementById('results-container');
+            container.innerHTML = '';
 
             items.forEach(function(item) {
-                if (item.id.kind === 'youtube#video' && videosCount < 10) {
-                    var videoCard = createVideoCard(item);
-                    resultsContainer.appendChild(videoCard);
-                    videosCount++;
-                } else if (item.id.kind === 'youtube#playlist' && playlistsCount < 10) {
-                    var videoCard = createVideoCard(item);
-                    suggestionsContainer.appendChild(videoCard);
-                    playlistsCount++;
+                var videoCard = document.createElement('div');
+                videoCard.classList.add('video-card');
+
+                var videoLink = document.createElement('a');
+                if (item.id.kind === 'youtube#video') {
+                    videoLink.href = 'https://www.youtube.com/watch?v=' + item.id.videoId;
+                } else if (item.id.kind === 'youtube#playlist') {
+                    videoLink.href = 'https://www.youtube.com/playlist?list=' + item.id.playlistId;
                 }
+
+                var thumbnail = document.createElement('img');
+                thumbnail.classList.add('thumbnail');
+                thumbnail.src = item.snippet.thumbnails.medium.url;
+
+                var title = document.createElement('div');
+                title.classList.add('title');
+                title.innerHTML = item.snippet.title;
+
+                var contentType = document.createElement('div');
+                contentType.classList.add('content-type');
+                contentType.innerHTML = item.id.kind === 'youtube#video' ? 'Video' : '<b>Playlist</b>';
+
+                videoLink.appendChild(thumbnail);
+                videoCard.appendChild(videoLink);
+                videoCard.appendChild(title);
+                videoCard.appendChild(contentType);
+
+                container.appendChild(videoCard);
             });
-        }
-
-        function createVideoCard(item) {
-            var videoCard = document.createElement('div');
-            videoCard.classList.add('video-card');
-
-            var videoLink = document.createElement('a');
-            videoLink.href = item.id.kind === 'youtube#playlist' ? 'https://www.youtube.com/playlist?list=' + item.id.playlistId : 'https://www.youtube.com/watch?v=' + item.id.videoId;
-            videoLink.target = '_blank';
-
-            var thumbnail = document.createElement('img');
-            thumbnail.classList.add('thumbnail');
-            thumbnail.src = item.snippet.thumbnails.medium.url;
-
-            var title = document.createElement('div');
-            title.classList.add('title');
-            title.innerHTML = item.snippet.title;
-
-            var contentType = document.createElement('div');
-            contentType.classList.add('content-type');
-            contentType.innerHTML = item.id.kind === 'youtube#video' ? 'Video' : '<b>Playlist</b>';
-
-            videoLink.appendChild(thumbnail);
-            videoCard.appendChild(videoLink);
-            videoCard.appendChild(title);
-            videoCard.appendChild(contentType);
-
-            return videoCard;
         }
     </script>
 </body>
