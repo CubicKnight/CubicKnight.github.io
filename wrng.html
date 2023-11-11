@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>W-RNG</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #dcd6f7; /* Lavender Blue */
+      text-align: center;
+      margin: 20px;
+    }
+
+    h1 {
+      color: #6a5acd; /* Slate Blue */
+    }
+
+    #container {
+      max-width: 600px;
+      margin: auto;
+      background-color: #c3bef0; /* Light Slate Blue */
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    p {
+      color: #333; /* Dark Gray */
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      color: #6a5acd; /* Slate Blue */
+    }
+
+    #inputText {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #483d8b; /* Dark Slate Blue */
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #3d348b; /* Darker Slate Blue */
+    }
+
+    #result, #error, #totalScore, #turnsLeft, #highscore {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #scoreSection {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    #popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      background-color: #fff;
+      border: 2px solid #6a5acd; /* Slate Blue */
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 1;
+    }
+
+    #popupContent {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    #popupButtons {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px; /* Added spacing */
+    }
+
+    #copyButton, #continueButton {
+      background-color: #6a5acd; /* Slate Blue */
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #copyButton:hover, #continueButton:hover {
+      background-color: #483d8b; /* Dark Slate Blue */
+    }
+  </style>
+</head>
+<body>
+
+  <div id="container">
+
+    <h1>W-RNG</h1>
+
+    <p>Welcome to W-RNG! A pseudo-RNG game where each word you enter rewards you some points. Your goal here is to maximize your score in 20 turns. W-RNG can be played solo or in a group of as many players as you deem fit!</p>
+    <p>May the blessing of RNGesus be with you.</p>
+
+    <div id="scoreSection">
+      <p id="turnsLeft">Turns Left: 20</p>
+      <p id="highscore">Highscore: 0</p>
+    </div>
+
+    <label for="inputText"></label>
+    <input type="text" id="inputText" placeholder="As is obvious, you write stuff here" onkeypress="handleKeyPress(event)">
+
+    <button onclick="convertAndDisplay()">ENTER</button>
+
+    <p id="result"></p>
+    <p id="error"></p>
+    <p id="totalScore">Total Score: 0</p>
+
+    <div id="popup">
+      <p id="popupContent">Round Over!<br>Your Score: 0</p>
+      <div id="popupButtons">
+        <button id="copyButton" onclick="copyScore()">Copy Score</button>
+        <button id="continueButton" onclick="continuePlaying()">Continue Playing</button>
+      </div>
+    </div>
+
+    <script>
+      var inputHistory = [];
+      var totalScore = 0;
+      var turnsLeft = 20;
+      var highscore = 0;
+      var randomMultiplier;
+
+      function generateRandomMultiplier() {
+        randomMultiplier = Math.floor(Math.random() * 10) + 1;
+      }
+
+      // Initial random multiplier generation
+      generateRandomMultiplier();
+
+      function convertAndDisplay() {
+        var inputText = document.getElementById('inputText').value;
+
+        if (inputHistory.includes(inputText)) {
+          document.getElementById('error').innerText = "You can't say the same thing again-";
+          document.getElementById('result').innerText = '';
+          return;
+        }
+
+        inputHistory.push(inputText);
+
+        var sum = 0;
+        for (var i = 0; i < inputText.length; i++) {
+          sum += inputText.charCodeAt(i);
+        }
+
+        // Calculate the score using the random multiplier and additional operations
+        var score = (sum * randomMultiplier % 20) + 1;
+
+        totalScore += score;
+
+        document.getElementById('result').innerText = 'Score: ' + score;
+        document.getElementById('error').innerText = '';
+        document.getElementById('totalScore').innerText = 'Total Score: ' + totalScore;
+
+        turnsLeft--;
+
+        document.getElementById('turnsLeft').innerText = 'Turns Left: ' + turnsLeft;
+
+        if (turnsLeft === 0) {
+          endRound();
+        }
+      }
+
+      function endRound() {
+        if (totalScore > highscore) {
+          highscore = totalScore;
+          document.getElementById('highscore').innerText = 'Highscore: ' + highscore;
+        }
+
+        // Display the pop-up with the score
+        var popup = document.getElementById('popup');
+        var popupContent = document.getElementById('popupContent');
+        popupContent.innerText = 'Round Over!\nYour Score: ' + totalScore;
+        popup.style.display = 'block';
+
+        // Reset for the next round
+        turnsLeft = 20;
+        totalScore = 0;
+        inputHistory = [];
+
+        document.getElementById('turnsLeft').innerText = 'Turns Left: ' + turnsLeft;
+        document.getElementById('totalScore').innerText = 'Total Score: ' + totalScore;
+
+        // Generate a new random number for the next round
+        generateRandomMultiplier();
+      }
+
+      function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+          convertAndDisplay();
+        }
+      }
+
+      function copyScore() {
+        // Copy the score to the clipboard (You might need additional permissions for this in some environments)
+        navigator.clipboard.writeText(totalScore.toString());
+        // Redirect to the provided link
+        window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+      }
+
+      function continuePlaying() {
+        // Hide the pop-up
+        document.getElementById('popup').style.display = 'none';
+      }
+    </script>
+
+  </div>
+
+</body>
+</html>
